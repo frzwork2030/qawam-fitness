@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>قوام | خطتك الرياضية والغذائية</title>
+
+<!-- Icon / PWA (filled in dynamically by JS below so the app stays a single file) -->
+<link rel="icon" id="faviconLink" href="">
+<link rel="apple-touch-icon" id="appleIconLink" href="">
+<link rel="manifest" id="manifestLink" href="">
+<meta name="theme-color" content="#0E1116">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="قوام">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: #0E1116;
+  --surface: #171C24;
+  --surface-2: #1F2733;
+  --line: #2A3441;
+  --text: #F3F1EC;
+  --text-muted: #8B94A3;
+  --fire: #FF7A45;
+  --fire-dim: #4A3021;
+  --water: #2DD4BF;
+  --water-dim: #163A37;
+  --gold: #E8B84B;
+  --radius: 16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  min-height:100vh;
+  line-height:1.6;
+}
+h1,h2,h3,.brand,.big-num,.nav-tab{ font-family:'Tajawal','IBM Plex Sans Arabic',sans-serif; }
+
+/* Top bar */
+header{
+  position: sticky; top:0; z-index:50;
+  background: rgba(14,17,22,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.header-inner{
+  max-width: 780px; margin:0 auto;
+  padding: 14px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.brand{ font-weight:900; font-size:22px; letter-spacing:0.5px; }
+.brand span{ color: var(--fire); }
+nav{ display:flex; gap:6px; }
+.nav-tab{
+  background:none; border:none; color: var(--text-muted);
+  font-size:14px; font-weight:700; padding:8px 12px; border-radius:999px;
+  cursor:pointer; transition: all .2s;
+}
+.nav-tab.active{ background: var(--surface-2); color: var(--text); }
+.nav-tab:hover{ color: var(--text); }
+
+main{ max-width: 780px; margin: 0 auto; padding: 24px 20px 80px; }
+.page{ display:none; animation: fadeIn .35s ease; }
+.page.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+/* Hero */
+.hero{ text-align:center; padding: 18px 0 28px; }
+.hero h1{ font-size: 28px; font-weight:900; margin-bottom:8px; }
+.hero p{ color: var(--text-muted); font-size:15px; max-width:480px; margin:0 auto; }
+.hero .accent-line{ color: var(--fire); }
+
+/* Cards & forms */
+.card{
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card h3{ font-size:16px; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color: var(--text-muted); margin-bottom:6px; font-weight:600; }
+.field input[type=number]{
+  width:100%; background: var(--surface-2); border:1px solid var(--line);
+  color: var(--text); padding:11px 12px; border-radius:10px; font-size:15px;
+  font-family:inherit;
+}
+.field input[type=number]:focus{ outline:none; border-color: var(--fire); }
+.seg{ display:flex; gap:8px; flex-wrap:wrap; }
+.seg button{
+  flex:1; min-width: 90px;
+  background: var(--surface-2); border:1px solid var(--line); color: var(--text-muted);
+  padding:10px 8px; border-radius:10px; font-size:13.5px; font-weight:700; cursor:pointer;
+  transition: all .15s; font-family:inherit;
+}
+.seg button.active{ background: var(--fire); border-color: var(--fire); color:#1a0e07; }
+.seg button.active.water-active{ background: var(--water); border-color: var(--water); color:#062421; }
+.calc-btn{
+  width:100%; padding:14px; border-radius:12px; border:none;
+  background: linear-gradient(135deg, var(--fire), #E85D2C);
+  color:#1a0e07; font-weight:900; font-size:16px; cursor:pointer; margin-top:6px;
+  font-family:inherit;
+}
+.calc-btn:active{ transform: scale(0.98); }
+
+/* Results */
+#results{ display:none; }
+.ring-wrap{ display:flex; justify-content:center; margin: 8px 0 20px; }
+.ring-label{ text-align:center; margin-top:-118px; }
+.ring-label .big-num{ font-size:34px; font-weight:900; }
+.ring-label .unit{ font-size:13px; color: var(--text-muted); }
+.macro-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.macro-box{ background: var(--surface-2); border-radius:12px; padding:14px 8px; text-align:center; border:1px solid var(--line); }
+.macro-box .val{ font-size:20px; font-weight:900; }
+.macro-box .lbl{ font-size:12px; color: var(--text-muted); margin-top:2px; }
+.macro-box.protein .val{ color: var(--fire); }
+.macro-box.water-box .val{ color: var(--water); }
+.note-box{ background: var(--water-dim); border:1px solid var(--water); border-radius:12px; padding:12px 14px; font-size:13.5px; color:#B8F3EA; }
+
+/* Exercise page */
+.filters{ display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; }
+.filters button{
+  white-space:nowrap; background: var(--surface-2); border:1px solid var(--line);
+  color: var(--text-muted); padding:9px 18px; border-radius:999px; font-size:13.5px;
+  font-weight:700; cursor:pointer; font-family:inherit;
+}
+.filters button.active{ background: var(--text); color: var(--bg); border-color: var(--text); }
+
+.muscle-banner{
+  background: var(--surface); border:1px solid var(--line); border-radius: var(--radius);
+  padding: 20px; margin-bottom:16px; display:flex; align-items:center; gap:18px;
+}
+.body-diagram{ width:88px; height:150px; flex-shrink:0; position:relative; }
+.body-diagram svg{ width:100%; height:100%; display:none; }
+.body-diagram svg.shown{ display:block; }
+.body-diagram .region{ fill: var(--surface-2); stroke: var(--line); stroke-width:1.2; transition: fill .25s, stroke .25s; }
+.body-diagram .region.active{ fill: var(--fire); stroke: var(--fire); fill-opacity:0.9; }
+.body-diagram .region.cardio-glow{ fill: var(--fire); stroke: var(--fire); fill-opacity:0.55; }
+.body-diagram .limb-decor, .body-diagram .head-decor{ fill: var(--surface-2); stroke: var(--line); stroke-width:1.2; }
+.muscle-banner .info .name{ font-size:18px; font-weight:900; }
+.muscle-banner .info .count{ font-size:13px; color: var(--text-muted); margin-top:2px; }
+.muscle-banner .info .view-lbl{ font-size:11.5px; color: var(--fire); font-weight:700; margin-top:6px; }
+.env-toggle{ display:flex; background: var(--surface-2); border-radius:12px; padding:4px; margin-bottom:18px; }
+.env-toggle button{
+  flex:1; background:none; border:none; color: var(--text-muted); padding:10px; border-radius:9px;
+  font-weight:800; font-size:14px; cursor:pointer; font-family:inherit;
+}
+.env-toggle button.active{ background: var(--fire); color:#1a0e07; }
+.ex-item{
+  background: var(--surface); border:1px solid var(--line); border-radius:14px;
+  padding:14px; margin-bottom:10px; display:flex; align-items:center; gap:14px;
+  cursor:pointer; transition: border-color .15s, transform .1s;
+}
+.ex-item:active{ transform: scale(0.98); }
+.ex-item:hover{ border-color: var(--fire); }
+.ex-item .ex-icon{
+  width:52px; height:52px; border-radius:12px; background: var(--surface-2);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.ex-item .ex-icon svg{ width:34px; height:34px; color: var(--fire); }
+.ex-item .ex-text{ flex:1; }
+.ex-item .name{ font-weight:800; font-size:15px; margin-bottom:4px; }
+.ex-item .meta{ color: var(--text-muted); font-size:13px; }
+.ex-tag{ background: var(--fire-dim); color: var(--fire); font-size:12px; font-weight:800; padding:5px 10px; border-radius:8px; white-space:nowrap; }
+
+/* Exercise detail modal */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(8,10,14,0.75); backdrop-filter: blur(3px);
+  display:none; align-items:flex-end; justify-content:center; z-index:200;
+}
+.modal-overlay.open{ display:flex; }
+.modal-sheet{
+  background: var(--surface); border:1px solid var(--line); border-radius: 22px 22px 0 0;
+  width:100%; max-width:780px; max-height:85vh; overflow-y:auto;
+  padding: 20px 22px 32px; animation: slideUp .3s ease;
+}
+@keyframes slideUp{ from{ transform: translateY(24px); opacity:0; } to{ transform: translateY(0); opacity:1; } }
+.modal-close{
+  width:34px; height:34px; border-radius:50%; background: var(--surface-2); border:none;
+  color: var(--text-muted); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  margin-inline-start:auto;
+}
+.modal-icon-big{
+  width:120px; height:120px; border-radius:20px; background: var(--surface-2);
+  display:flex; align-items:center; justify-content:center; margin:6px auto 18px;
+}
+.modal-icon-big svg{ width:78px; height:78px; color: var(--fire); }
+.modal-title{ text-align:center; font-size:20px; font-weight:900; margin-bottom:4px; }
+.modal-meta{ text-align:center; color: var(--text-muted); font-size:13.5px; margin-bottom:22px; }
+.modal-steps{ list-style:none; counter-reset: step; }
+.modal-steps li{
+  counter-increment: step; display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line);
+  font-size:14.5px; color: var(--text-muted); align-items:flex-start;
+}
+.modal-steps li:last-child{ border-bottom:none; }
+.modal-steps li::before{
+  content: counter(step); flex-shrink:0; width:26px; height:26px; border-radius:50%;
+  background: var(--fire-dim); color: var(--fire); font-weight:900; font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* Tips */
+.tip-item{ display:flex; gap:12px; padding:14px 0; border-bottom:1px solid var(--line); }
+.tip-item:last-child{ border-bottom:none; }
+.tip-num{ background: var(--fire-dim); color: var(--fire); font-weight:900; font-size:13px; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tip-text b{ color:#fff; }
+.tip-text{ font-size:14.5px; color: var(--text-muted); }
+
+/* More page */
+.more-card{ text-align:center; padding:32px 20px; }
+.more-card .logo-lg{ font-size:34px; font-weight:900; margin-bottom:6px; }
+.more-card .tag{ color: var(--text-muted); font-size:14px; margin-bottom:22px; }
+.contact-row{ display:flex; align-items:center; justify-content:space-between; padding:13px 4px; border-bottom:1px solid var(--line); font-size:14.5px; }
+.contact-row:last-of-type{ border-bottom:none; }
+.contact-row span:first-child{ color: var(--text-muted); }
+.legal{ font-size:12.5px; color: var(--text-muted); margin-top:24px; line-height:1.9; text-align:right; }
+.legal b{ color: var(--text); }
+
+footer.bottom-nav{ display:none; }
+@media (max-width:480px){
+  .brand{ font-size:19px; }
+  .nav-tab{ font-size:13px; padding:7px 9px; }
+  .macro-grid{ gap:8px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">قوام<span>.</span></div>
+    <nav>
+      <button class="nav-tab active" data-page="calc">الحاسبة</button>
+      <button class="nav-tab" data-page="exercises">التمارين</button>
+      <button class="nav-tab" data-page="tips">نصائح</button>
+      <button class="nav-tab" data-page="more">المزيد</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===== CALCULATOR PAGE ===== -->
+  <section class="page active" id="page-calc">
+    <div class="hero">
+      <h1>خطتك الغذائية <span class="accent-line">بالأرقام</span></h1>
+      <p>عبّي بياناتك واحصل على السعرات، البروتين، الماء، والكارب المناسب لهدفك.</p>
+    </div>
+
+    <div class="card">
+      <h3>👤 بياناتك</h3>
+      <div class="field">
+        <label>الجنس</label>
+        <div class="seg">
+          <button class="opt-gender active" data-val="male">ذكر</button>
+          <button class="opt-gender" data-val="female">انثى</button>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>العمر (سنة)</label>
+          <input type="number" id="age" placeholder="مثال: 28" value="28">
+        </div>
+        <div class="field">
+          <label>الوزن (كجم)</label>
+          <input type="number" id="weight" placeholder="مثال: 75" value="75">
+        </div>
+      </div>
+      <div class="field">
+        <label>الطول (سم)</label>
+        <input type="number" id="height" placeholder="مثال: 175" value="175">
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎯 هدفك</h3>
+      <div class="seg" style="margin-bottom:12px;">
+        <button class="opt-goal" data-val="cut">تنشيف</button>
+        <button class="opt-goal active" data-val="maintain">توازن</button>
+        <button class="opt-goal" data-val="bulk">تضخيم</button>
+      </div>
+      <h3 style="margin-top:6px;">⚡ مستوى نشاطك</h3>
+      <div class="seg" style="flex-wrap:wrap;">
+        <button class="opt-activity" data-val="1.2">قليل الحركة</button>
+        <button class="opt-activity active" data-val="1.375">نشاط خفيف</button>
+        <button class="opt-activity" data-val="1.55">نشاط متوسط</button>
+        <button class="opt-activity" data-val="1.725">نشاط عالي</button>
+        <button class="opt-activity" data-val="1.9">رياضي محترف</button>
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">احسب خطتي</button>
+
+    <div id="results">
+      <div class="card" style="margin-top:20px;">
+        <div class="ring-wrap">
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="95" fill="none" stroke="#1F2733" stroke-width="16"/>
+            <circle id="ringProgress" cx="110" cy="110" r="95" fill="none" stroke="url(#grad)" stroke-width="16" stroke-linecap="round" stroke-dasharray="597" stroke-dashoffset="597" transform="rotate(-90 110 110)"/>
+            <defs>
+              <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FF7A45"/>
+                <stop offset="100%" stop-color="#E8B84B"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="ring-label">
+          <div class="big-num" id="calResult">0</div>
+          <div class="unit">سعرة حرارية / يوم</div>
+        </div>
+
+        <div class="macro-grid" style="margin-top:26px;">
+          <div class="macro-box protein">
+            <div class="val" id="proteinResult">0غ</div>
+            <div class="lbl">بروتين</div>
+          </div>
+          <div class="macro-box">
+            <div class="val" id="carbResult">0غ</div>
+            <div class="lbl">كارب</div>
+          </div>
+          <div class="macro-box">
+            <div class="val" id="fatResult">0غ</div>
+            <div class="lbl">دهون</div>
+          </div>
+        </div>
+        <div class="macro-box water-box" style="margin-bottom:14px;">
+          <div class="val" id="waterResult">0 لتر</div>
+          <div class="lbl">💧 ماء يوميًا</div>
+        </div>
+        <div class="note-box" id="goalNote"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== EXERCISES PAGE ===== -->
+  <section class="page" id="page-exercises">
+    <div class="hero">
+      <h1>تمارينك <span class="accent-line">اليوم</span></h1>
+      <p>اختر مكان التمرين والعضلة المستهدفة.</p>
+    </div>
+
+    <div class="env-toggle">
+      <button class="env-btn active" data-env="home">🏠 المنزل</button>
+      <button class="env-btn" data-env="gym">🏋️ النادي</button>
+    </div>
+
+    <div class="filters" id="muscleFilters"></div>
+    <div class="muscle-banner" id="muscleBanner">
+      <div class="body-diagram">
+        <svg id="frontBody" class="shown" viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg">
+          <ellipse class="head-decor" cx="50" cy="13" rx="10" ry="11"/>
+          <rect class="head-decor" x="45" y="22" width="10" height="7" rx="2"/>
+          <ellipse class="region" data-key="أكتاف" cx="30" cy="35" rx="8" ry="9"/>
+          <ellipse class="region" data-key="أكتاف" cx="70" cy="35" rx="8" ry="9"/>
+          <path class="limb-decor" d="M23 40 Q18 60 20 85 L28 85 Q27 60 32 42 Z"/>
+          <path class="limb-decor" d="M77 40 Q82 60 80 85 L72 85 Q73 60 68 42 Z"/>
+          <path class="region" data-key="صدر" d="M34 36 Q50 30 66 36 L64 66 Q50 72 36 66 Z"/>
+          <path class="region" data-key="بطن" d="M36 66 Q50 72 64 66 L62 108 Q50 114 38 108 Z"/>
+          <rect class="region" data-key="أرجل" x="36" y="110" width="12" height="60" rx="6"/>
+          <rect class="region" data-key="أرجل" x="52" y="110" width="12" height="60" rx="6"/>
+        </svg>
+        <svg id="backBody" viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg">
+          <ellipse class="head-decor" cx="50" cy="13" rx="10" ry="11"/>
+          <rect class="head-decor" x="45" y="22" width="10" height="7" rx="2"/>
+          <ellipse class="limb-decor" cx="30" cy="35" rx="8" ry="9"/>
+          <ellipse class="limb-decor" cx="70" cy="35" rx="8" ry="9"/>
+          <path class="limb-decor" d="M23 40 Q18 60 20 85 L28 85 Q27 60 32 42 Z"/>
+          <path class="limb-decor" d="M77 40 Q82 60 80 85 L72 85 Q73 60 68 42 Z"/>
+          <path class="region" data-key="ظهر" d="M34 36 Q50 30 66 36 L62 108 Q50 114 38 108 Z"/>
+          <rect class="region" data-key="أرجل" x="36" y="110" width="12" height="60" rx="6"/>
+          <rect class="region" data-key="أرجل" x="52" y="110" width="12" height="60" rx="6"/>
+        </svg>
+      </div>
+      <div class="info">
+        <div class="name" id="bannerName"></div>
+        <div class="count" id="bannerCount"></div>
+        <div class="view-lbl" id="bannerView"></div>
+      </div>
+    </div>
+    <div id="exList"></div>
+  </section>
+
+  <!-- ===== TIPS PAGE ===== -->
+  <section class="page" id="page-tips">
+    <div class="hero">
+      <h1>نصائح <span class="accent-line">تفرق معك</span></h1>
+      <p>أساسيات بسيطة لكنها الأكثر تأثيرًا في نتيجتك.</p>
+    </div>
+    <div class="card">
+      <div id="tipsList"></div>
+    </div>
+  </section>
+
+  <!-- ===== MORE PAGE ===== -->
+  <section class="page" id="page-more">
+    <div class="card more-card">
+      <div class="logo-lg">قوام<span style="color:var(--fire)">.</span></div>
+      <div class="tag">خطتك الرياضية والغذائية في مكان واحد</div>
+
+      <div style="text-align:right;">
+        <div class="contact-row"><span>👨‍💻 المطور</span><span>FRZ</span></div>
+        <div class="contact-row"><span>📸 انستقرام</span><span>NKMMLK_STORE</span></div>
+        <div class="contact-row"><span>📧 التواصل</span><span>Faisal-PR2030@Outlook.com</span></div>
+        <div class="contact-row"><span>الإصدار</span><span>1.0.0</span></div>
+      </div>
+
+      <div class="legal">
+        <b>© 2026 قوام. جميع الحقوق محفوظة.</b><br>
+        هذا التطبيق مخصص للاستخدام الشخصي وتم شراؤه من صاحب الحقوق مباشرة. <b>لا أُحلّل نشر أو إعادة بيع أو توزيع هذا الملف بأي شكل.</b> إذا أعجبك التطبيق وحبيت تنشر فائدته لغيرك، انشر رابط متجرنا (@NKMMLK_STORE) بدل نشر الملف نفسه.<br><br>
+        <b>تنويه صحي:</b> الحاسبات والتمارين في هذا التطبيق لأغراض إرشادية عامة ولا تغني عن استشارة طبيب أو أخصائي تغذية، خصوصًا لمن لديه حالة صحية أو أقل من 18 سنة.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== EXERCISE DETAIL MODAL ===== -->
+<div class="modal-overlay" id="exerciseModal">
+  <div class="modal-sheet">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-icon-big" id="modalIcon"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-meta" id="modalMeta"></div>
+    <ol class="modal-steps" id="modalSteps"></ol>
+  </div>
+</div>
+
+<script>
+/* ---------- App icon + PWA manifest (single-file, no external assets) ---------- */
+const iconSVG = `<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#171C24"/>
+      <stop offset="100%" stop-color="#0E1116"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <text x="228" y="300" text-anchor="middle" font-size="140" textLength="260" lengthAdjust="spacingAndGlyphs" direction="rtl" font-family="Tajawal, Segoe UI, Tahoma, sans-serif" font-weight="900" fill="#F3F1EC">قوام</text>
+  <circle cx="398" cy="280" r="16" fill="#FF7A45"/>
+</svg>`;
+const iconDataUri = 'data:image/svg+xml,' + encodeURIComponent(iconSVG);
+document.getElementById('faviconLink').setAttribute('href', iconDataUri);
+document.getElementById('appleIconLink').setAttribute('href', iconDataUri);
+
+const manifest = {
+  name: 'قوام - خطتك الرياضية والغذائية',
+  short_name: 'قوام',
+  description: 'حاسبة سعرات وبروتين وماء + مكتبة تمارين منزل ونادي',
+  start_url: '.',
+  display: 'standalone',
+  orientation: 'portrait',
+  dir: 'rtl',
+  lang: 'ar',
+  background_color: '#0E1116',
+  theme_color: '#0E1116',
+  icons: [
+    { src: iconDataUri, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
+    { src: iconDataUri, sizes: '192x192', type: 'image/svg+xml' }
+  ]
+};
+const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+document.getElementById('manifestLink').setAttribute('href', URL.createObjectURL(manifestBlob));
+
+/* ---------- Navigation ---------- */
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+tab.dataset.page).classList.add('active');
+  });
+});
+
+/* ---------- Segmented controls ---------- */
+function setupSeg(selector, groupCheck){
+  document.querySelectorAll(selector).forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll(selector).forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+}
+setupSeg('.opt-gender');
+setupSeg('.opt-goal');
+setupSeg('.opt-activity');
+
+/* ---------- Calculator ---------- */
+function calculate(){
+  const age = parseFloat(document.getElementById('age').value) || 25;
+  const weight = parseFloat(document.getElementById('weight').value) || 70;
+  const height = parseFloat(document.getElementById('height').value) || 170;
+  const gender = document.querySelector('.opt-gender.active').dataset.val;
+  const goal = document.querySelector('.opt-goal.active').dataset.val;
+  const activity = parseFloat(document.querySelector('.opt-activity.active').dataset.val);
+
+  let bmr = gender === 'male'
+    ? (10*weight + 6.25*height - 5*age + 5)
+    : (10*weight + 6.25*height - 5*age - 161);
+
+  let tdee = bmr * activity;
+  let calories, proteinPerKg, note;
+
+  if(goal === 'cut'){
+    calories = tdee * 0.8;
+    proteinPerKg = 2.2;
+    note = '🔥 في التنشيف، حافظ على البروتين مرتفع لحماية العضلة وقلل الكارب أكثر من الدهون. اشرب الماء بانتظام لتقليل الجوع.';
+  } else if(goal === 'bulk'){
+    calories = tdee * 1.15;
+    proteinPerKg = 2.0;
+    note = '💪 في التضخيم، الفائض يكون تدريجي — لا تتجاوز 15% حتى لا يتحول لدهون زيادة. ركّز على تمارين القوة.';
+  } else {
+    calories = tdee;
+    proteinPerKg = 1.8;
+    note = '⚖️ في مرحلة التوازن، هدفك ثبات الوزن مع تحسين التركيب الجسدي. راقب وزنك أسبوعيًا وعدّل السعرات لو تغيّر.';
+  }
+
+  const protein = weight * proteinPerKg;
+  const fat = (calories * 0.25) / 9;
+  const carbs = (calories - (protein*4) - (fat*9)) / 4;
+  const water = (weight * 0.035) + (activity > 1.5 ? 0.5 : 0);
+
+  document.getElementById('calResult').textContent = Math.round(calories);
+  document.getElementById('proteinResult').textContent = Math.round(protein) + 'غ';
+  document.getElementById('carbResult').textContent = Math.round(Math.max(carbs,0)) + 'غ';
+  document.getElementById('fatResult').textContent = Math.round(fat) + 'غ';
+  document.getElementById('waterResult').textContent = water.toFixed(1) + ' لتر';
+  document.getElementById('goalNote').textContent = note;
+
+  document.getElementById('results').style.display = 'block';
+
+  // Animate ring relative to a 3500 kcal ceiling
+  const pct = Math.min(calories / 3500, 1);
+  const circumference = 597;
+  const offset = circumference - (pct * circumference);
+  const ring = document.getElementById('ringProgress');
+  ring.style.transition = 'stroke-dashoffset 1s ease';
+  setTimeout(()=>{ ring.setAttribute('stroke-dashoffset', offset); }, 50);
+
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ---------- Exercises data ---------- */
+const exercises = {
+  home: {
+    صدر: [
+      {name:'ضغط عادي', meta:'4 مجموعات × 12-15 تكرار', pose:'pushup', steps:['ضع يديك على الأرض بعرض الكتفين وجسمك مستقيم من الرأس للكعبين.','انزل ببطء حتى يقترب صدرك من الأرض مع بقاء المرفقين قريبين من الجسم.','ادفع نفسك للأعلى حتى يستقيم الذراعان بالكامل.']},
+      {name:'ضغط مرتفع (يدين على كرسي)', meta:'3 مجموعات × 15 تكرار', pose:'pushup', steps:['ضع يديك على حافة كرسي أو طاولة ثابتة وجسمك مائل ومستقيم.','انزل ببطء نحو الكرسي مع شد البطن.','ادفع للأعلى حتى يستقيم الذراعان — أسهل من الضغط العادي.']},
+      {name:'ضغط ضيق (مثلث)', meta:'3 مجموعات × 10-12 تكرار', pose:'pushup', steps:['ضع يديك متقاربتين تحت الصدر بحيث تكوّن شكل مثلث بالأصابع.','انزل ببطء مع إبقاء المرفقين قريبين من الجسم لا للخارج.','ادفع للأعلى — يركّز أكثر على الترايسيبس ووسط الصدر.']}
+    ],
+    ظهر: [
+      {name:'سحب بمنشفة على باب', meta:'3 مجموعات × 12 تكرار', pose:'row', steps:['لف منشفة على مقبض باب مغلق جيدًا وأمسك طرفيها.','اتكئ للخلف برجلين ممدودتين وذراعين مستقيمتين.','اسحب جسمك للأمام بقوة الظهر حتى تقترب من الباب ثم ارجع ببطء.']},
+      {name:'سوبرمان', meta:'3 مجموعات × 15 تكرار', pose:'superman', steps:['استلقِ على بطنك وذراعاك ممدودتان للأمام.','ارفع الذراعين والصدر والرجلين معًا عن الأرض في نفس الوقت.','ثبّت لثانيتين ثم انزل ببطء وكرر.']},
+      {name:'سحب بأشرطة مقاومة', meta:'4 مجموعات × 12 تكرار', pose:'row', steps:['ثبّت الشريط في نقطة مرتفعة وأمسك طرفيه بيديك.','اسحب المرفقين للخلف مع الحفاظ على الظهر مستقيمًا.','ارجع ببطء للوضع الأصلي مع التحكم بالحركة.']}
+    ],
+    أرجل: [
+      {name:'سكوات عادي', meta:'4 مجموعات × 15-20 تكرار', pose:'squat', steps:['قف والقدمان بعرض الكتفين تقريبًا.','انزل كأنك تجلس على كرسي مع إبقاء الظهر مستقيمًا والركبتين خلف أصابع القدم.','ادفع من الكعبين للأعلى للرجوع للوقوف.']},
+      {name:'لنجز (Lunges)', meta:'3 مجموعات × 12 لكل رجل', pose:'lunge', steps:['اخطُ خطوة كبيرة للأمام برجل واحدة.','انزل حتى تصل الركبة الخلفية قريبة من الأرض بزاوية 90 درجة.','ادفع للرجوع للوقوف وكرر بالرجل الأخرى.']},
+      {name:'رفع كعب (Calf Raise)', meta:'3 مجموعات × 20 تكرار', pose:'calfraise', steps:['قف مستقيمًا وقدماك مسطحتان على الأرض.','ارتفع على أطراف أصابع قدميك ببطء لأعلى ارتفاع ممكن.','انزل ببطء وكرر — يمكنك الاستناد لحائط للتوازن.']}
+    ],
+    أكتاف: [
+      {name:'ضغط كتف بعبوات ماء', meta:'3 مجموعات × 12 تكرار', pose:'shoulderpress', steps:['أمسك عبوتي ماء مليئتين بجانب كتفيك.','ادفعهما للأعلى حتى يستقيم الذراعان فوق الرأس.','أنزلهما ببطء للوضع الأصلي وكرر.']},
+      {name:'رفعات جانبية بعبوات', meta:'3 مجموعات × 15 تكرار', pose:'lateralraise', steps:['قف وأمسك عبوة ماء بكل يد بجانب جسمك.','ارفع الذراعين للجانبين حتى ارتفاع الكتف مع بقائهما شبه مستقيمتين.','أنزلهما ببطء وتحكم — لا ترفع لأعلى من الكتف.']},
+      {name:'بايك ضغط (Pike Push-up)', meta:'3 مجموعات × 10 تكرار', pose:'pike', steps:['ضع يديك وقدميك على الأرض وارفع الحوض للأعلى بشكل حرف V مقلوب.','انزل الرأس نحو الأرض بثني المرفقين.','ادفع للأعلى للرجوع — يركّز على الكتف بشكل مكثف.']}
+    ],
+    بطن: [
+      {name:'بلانك', meta:'3 مجموعات × 40-60 ثانية', pose:'plank', steps:['استلقِ واستند على ساعديك وأطراف أصابع قدميك.','اجعل جسمك خطًا مستقيمًا من الرأس للكعبين مع شد البطن.','ثبّت الوضعية للمدة المطلوبة دون هبوط الحوض.']},
+      {name:'كرانش', meta:'4 مجموعات × 20 تكرار', pose:'crunch', steps:['استلقِ على ظهرك وثنِّ ركبتيك مع بقاء القدمين على الأرض.','ضع يديك خلف الرأس وارفع الجزء العلوي من الجسم للأمام قليلًا.','انزل ببطء دون أن يلمس رأسك الأرض بالكامل وكرر.']},
+      {name:'رفع رجل معلق وهمي (Leg Raise)', meta:'3 مجموعات × 15 تكرار', pose:'legraise', steps:['استلقِ على ظهرك ويداك تحت الحوض للدعم.','ارفع الرجلين الممدودتين للأعلى حتى الزاوية القائمة.','أنزلهما ببطء دون لمس الأرض وكرر.']}
+    ],
+    كارديو: [
+      {name:'جري مكانك', meta:'4 جولات × دقيقة', pose:'running', steps:['قف مكانك وابدأ برفع الركبتين بالتبادل بسرعة.','حرّك الذراعين بشكل طبيعي مثل الجري الفعلي.','حافظ على الإيقاع لمدة دقيقة كاملة.']},
+      {name:'قفز الحبل (بدون حبل)', meta:'4 جولات × دقيقة', pose:'jump', steps:['قف مستقيمًا وابدأ بالقفز الخفيف مكانك.','حرّك المعصمين كأنك تدير حبلًا فعليًا.','حافظ على القفزات خفيفة وسريعة لمدة دقيقة.']},
+      {name:'جبل متسلق (Mountain Climbers)', meta:'4 جولات × 40 ثانية', pose:'mountainclimber', steps:['ابدأ من وضعية البلانك على اليدين.','اسحب ركبة واحدة نحو الصدر بسرعة ثم ارجعها.','بدّل الرجلين بسرعة وكأنك تتسلق.']}
+    ]
+  },
+  gym: {
+    صدر: [
+      {name:'بنش برس بار', meta:'4 مجموعات × 8-10 تكرار', pose:'benchpress', steps:['استلقِ على البنش وأمسك البار بعرض أوسع من الكتفين قليلًا.','أنزل البار ببطء حتى يقترب من منتصف الصدر.','ادفع البار للأعلى حتى يستقيم الذراعان بالكامل.']},
+      {name:'بنش مائل دمبل', meta:'3 مجموعات × 10-12 تكرار', pose:'benchpress', steps:['استلقِ على بنش مائل بزاوية 30-45 درجة وأمسك دمبل بكل يد.','أنزل الدمبلين ببطء بجانب الصدر العلوي.','ادفعهما للأعلى حتى يلتقيا فوق الصدر تقريبًا.']},
+      {name:'كيبل كروس أوفر', meta:'3 مجموعات × 12-15 تكرار', pose:'lateralraise', steps:['قف بين جهازي الكيبل وأمسك المقبضين بذراعين ممدودتين للجانبين.','اجذب المقبضين للأمام والأسفل حتى يلتقيا أمام الصدر.','ارجع ببطء وتحكم مع الشعور بتمدد الصدر.']}
+    ],
+    ظهر: [
+      {name:'عقلة (Pull-up)', meta:'4 مجموعات × أقصى تكرار', pose:'pullup', steps:['أمسك العارضة بيدين أوسع قليلًا من الكتفين وعلّق جسمك بالكامل.','اسحب جسمك للأعلى حتى يصل الذقن فوق العارضة.','انزل ببطء وتحكم حتى استقامة الذراعين.']},
+      {name:'سحب أرضي (Rowing)', meta:'4 مجموعات × 10 تكرار', pose:'row', steps:['انحنِ للأمام قليلًا مع بقاء الظهر مستقيمًا وأمسك البار أو المقبض.','اسحب المرفقين للخلف حتى يلامس البار الجزء السفلي من البطن.','ارجع ببطء مع تحكم كامل بالحركة.']},
+      {name:'ديد ليفت', meta:'4 مجموعات × 6-8 تكرار', pose:'deadlift', steps:['قف والبار أمام قدميك وانحنِ لأسفل بظهر مستقيم لتمسكه.','ارفع البار بشد الأرجل والحوض مع بقاء الظهر مستقيمًا طوال الحركة.','قف بشكل كامل ثم أنزل البار ببطء بنفس المسار.']}
+    ],
+    أرجل: [
+      {name:'سكوات بار', meta:'4 مجموعات × 8-10 تكرار', pose:'squat', steps:['ضع البار على أعلى الظهر (الترابيزيوس) وقف بعرض كتفين.','انزل ببطء كأنك تجلس مع بقاء الصدر مرفوعًا والركبتين متجهتين للخارج قليلًا.','ادفع من الكعبين للأعلى للرجوع للوقوف الكامل.']},
+      {name:'ليك برس (Leg Press)', meta:'4 مجموعات × 12 تكرار', pose:'legpress', steps:['اجلس على الجهاز وضع قدميك على المنصة بعرض الكتفين.','ادفع المنصة للأمام حتى استقامة الأرجل دون قفل الركبتين بالكامل.','ارجع ببطء حتى تصل الركبتان قريبة من الصدر.']},
+      {name:'رومانيان ديدليفت', meta:'3 مجموعات × 10 تكرار', pose:'deadlift', steps:['قف وأمسك البار أمامك بذراعين ممدودتين وركبتين شبه مستقيمتين.','انحنِ للأمام من الحوض مع إنزال البار قريبًا من الأرجل والظهر مستقيم.','ارجع للوقوف بشد عضلات الخلف من الفخذ (الهامسترنج).']}
+    ],
+    أكتاف: [
+      {name:'ضغط عسكري بار', meta:'4 مجموعات × 8-10 تكرار', pose:'shoulderpress', steps:['قف وأمسك البار عند مستوى الكتفين بقبضة للأمام.','ادفع البار للأعلى حتى استقامة الذراعين فوق الرأس.','أنزله ببطء لمستوى الكتفين وكرر.']},
+      {name:'رفعات جانبية دمبل', meta:'3 مجموعات × 15 تكرار', pose:'lateralraise', steps:['قف وأمسك دمبل بكل يد بجانب جسمك.','ارفع الذراعين للجانبين حتى ارتفاع الكتف مع انحناء بسيط بالمرفق.','أنزلهما ببطء وتحكم كامل.']},
+      {name:'رفعات خلفية (Rear Delt Fly)', meta:'3 مجموعات × 15 تكرار', pose:'reardeltfly', steps:['انحنِ للأمام من الحوض مع بقاء الظهر مستقيمًا وأمسك دمبل بكل يد.','ارفع الذراعين للجانبين مع التركيز على عضلات الكتف الخلفية.','أنزلهما ببطء للوضع الأصلي وكرر.']}
+    ],
+    بطن: [
+      {name:'كيبل كرانش', meta:'3 مجموعات × 15 تكرار', pose:'crunch', steps:['اركع أمام جهاز الكيبل وأمسك الحبل خلف رأسك.','انحنِ للأمام من البطن فقط مع بقاء الحوض ثابتًا.','ارجع ببطء للوضع الأصلي وكرر.']},
+      {name:'رفع رجل معلق', meta:'3 مجموعات × 12 تكرار', pose:'legraise', steps:['تعلّق من العارضة بذراعين ممدودتين بالكامل.','ارفع الرجلين الممدودتين أو المثنيتين للأمام حتى مستوى الحوض أو أعلى.','أنزلهما ببطء وتحكم دون تأرجح الجسم.']},
+      {name:'بلانك بوزن إضافي', meta:'3 مجموعات × 45 ثانية', pose:'plank', steps:['ضع قرص وزن خفيف على أسفل الظهر أثناء وضعية البلانك العادية.','حافظ على جسمك خطًا مستقيمًا من الرأس للكعبين.','ثبّت الوضعية للمدة المطلوبة مع شد البطن باستمرار.']}
+    ],
+    كارديو: [
+      {name:'جهاز المشي (Treadmill)', meta:'20-25 دقيقة سرعة متوسطة', pose:'treadmill', steps:['اضبط السرعة على مستوى مشي سريع أو هرولة خفيفة.','حافظ على وضعية مستقيمة ونظرة للأمام أثناء المشي.','استمر بإيقاع ثابت للمدة المحددة مع زيادة تدريجية إن أمكن.']},
+      {name:'دراجة ثابتة', meta:'20 دقيقة مقاومة متوسطة', pose:'bike', steps:['اضبط ارتفاع المقعد بحيث تكون الركبة شبه مستقيمة عند أسفل الدواسة.','ابدأ بالدواسة بإيقاع ثابت مع مقاومة متوسطة.','حافظ على الظهر مستقيمًا طوال مدة التمرين.']},
+      {name:'روينج مشين', meta:'15 دقيقة', pose:'row', steps:['اجلس وأمسك المقبض والرجلان مثنيتان أمامك.','ادفع بالأرجل أولًا ثم اسحب المقبض نحو البطن بالذراعين.','ارجع ببطء بنفس الترتيب المعكوس وكرر بإيقاع ثابت.']}
+    ]
+  }
+};
+
+/* ---------- Exercise pose pictograms ---------- */
+const poseIcons = {
+  pushup: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="17" r="3.3"/><path d="M13 19l21 6.5M13 19l0 11M22 22l-1 8M34 25.5l6 3"/><line x1="6" y1="33" x2="42" y2="33" stroke-width="1.6" opacity="0.35"/></svg>`,
+  pike: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="26" r="3.3"/><path d="M24 23l-9 8-4 3M24 23l9 8 4 3M24 23l-3-11M24 23l3-11"/><line x1="6" y1="34" x2="42" y2="34" stroke-width="1.6" opacity="0.35"/></svg>`,
+  row: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="12" r="3.3"/><path d="M28 15l-6 8M22 23l-9 3M22 23l3 11M22 23l-4 10M22 12l-3 3"/><line x1="6" y1="34" x2="42" y2="34" stroke-width="1.6" opacity="0.35"/></svg>`,
+  superman: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="3.2"/><path d="M12 22l24 3M12 22l-5-7M12 22l-4 6M36 25l6-5M36 25l5 6"/></svg>`,
+  squat: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="8" r="3.3"/><path d="M24 11v10M24 21l-8 3M24 21l8 3M16 24l-2 10M32 24l2 10M13 15l-4 6M35 15l4 6"/></svg>`,
+  lunge: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="8" r="3.3"/><path d="M20 11l1 9M21 20l-10 5M21 20l9-2M11 25l-2 9M30 18l3 6"/><path d="M15 14l-4 3M26 14l4 3"/></svg>`,
+  calfraise: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="9" r="3.3"/><path d="M24 12v11M24 23l-6 10M24 23l6 10M18 33l-1 2M30 33l1 2M18 15l-4 2M30 15l4 2"/><path d="M15 33h4M29 33h4" stroke-width="1.8"/></svg>`,
+  shoulderpress: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="10" r="3.3"/><path d="M24 13v14M24 27l-6 9M24 27l6 9M24 15l-8-8M24 15l8-8"/></svg>`,
+  lateralraise: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="10" r="3.3"/><path d="M24 13v14M24 27l-6 9M24 27l6 9M24 17l-11-2M24 17l11-2"/></svg>`,
+  plank: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="22" r="3.3"/><path d="M12 24l27 1M12 24v9M39 25l3 8"/><line x1="6" y1="33" x2="44" y2="33" stroke-width="1.6" opacity="0.35"/></svg>`,
+  crunch: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="19" r="3.3"/><path d="M17 21l10 5M27 26l7-1M27 26l1-8M27 26l9 3M9 22l3-2"/><line x1="4" y1="30" x2="30" y2="30" stroke-width="1.6" opacity="0.35"/></svg>`,
+  legraise: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="24" r="3.3"/><path d="M12 25l24 1M12 25l-3 6M36 26l3-16M36 26l7-14"/><line x1="6" y1="31" x2="30" y2="31" stroke-width="1.6" opacity="0.35"/></svg>`,
+  running: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="22" cy="9" r="3.3"/><path d="M22 12l1 9M23 21l9 2M23 21l-4 6M19 27l-6 6M32 23l4 8M13 33l-3 4"/></svg>`,
+  jump: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="9" r="3.3"/><path d="M24 12v11M24 23l-9-4M24 23l9-4M24 23l-8 11M24 23l8 11"/></svg>`,
+  mountainclimber: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="3.3"/><path d="M12 23l27 1M12 23v10M20 24l4-7M39 24l3 8"/><line x1="6" y1="33" x2="44" y2="33" stroke-width="1.6" opacity="0.35"/></svg>`,
+  benchpress: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="27" r="3.3"/><path d="M13 27h24M17 27l3-11M17 27l3 9M13 16h10" stroke-width="2"/><line x1="4" y1="30" x2="34" y2="30" stroke-width="1.6" opacity="0.35"/></svg>`,
+  pullup: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="8" x2="42" y2="8" stroke-width="2"/><circle cx="24" cy="17" r="3.3"/><path d="M24 20v8M24 22l-8-13M24 22l8-13M24 28l-4 9M24 28l4 9"/></svg>`,
+  deadlift: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="34" cy="8" r="3.3"/><path d="M32 11l-10 5M22 16l-12 15M22 16l6 4M28 20l7 2M10 31h24" stroke-width="2"/></svg>`,
+  legpress: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="22" r="3.3"/><path d="M13 24l10 2M13 24l-2 10M23 26l3-9M23 26l9-3M32 17l6-1" stroke-width="2"/></svg>`,
+  reardeltfly: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="12" r="3.3"/><path d="M28 15l-6 8M22 23l-4 10M22 23l9 3M22 15l-9-2M22 15l9 5"/></svg>`,
+  treadmill: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="22" cy="9" r="3.3"/><path d="M22 12l1 9M23 21l9 2M23 21l-4 6M19 27l-6 6M32 23l4 8"/><path d="M6 34h36" stroke-width="2.4"/></svg>`,
+  bike: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="14" r="3.3"/><path d="M18 17l4 8M22 25l10-2M22 25l-6 6M32 23l6-9M32 23l-16 3" stroke-width="2"/></svg>`
+};
+
+let currentEnv = 'home';
+let currentMuscle = 'صدر';
+
+function renderFilters(){
+  const filterBar = document.getElementById('muscleFilters');
+  filterBar.innerHTML = '';
+  Object.keys(exercises[currentEnv]).forEach(muscle=>{
+    const btn = document.createElement('button');
+    btn.textContent = muscle;
+    if(muscle === currentMuscle) btn.classList.add('active');
+    btn.addEventListener('click', ()=>{
+      currentMuscle = muscle;
+      renderFilters();
+      renderExercises();
+    });
+    filterBar.appendChild(btn);
+  });
+}
+
+function updateBodyDiagram(){
+  const front = document.getElementById('frontBody');
+  const back = document.getElementById('backBody');
+  const isBack = currentMuscle === 'ظهر';
+  front.classList.toggle('shown', !isBack);
+  back.classList.toggle('shown', isBack);
+  document.getElementById('bannerView').textContent = isBack ? 'منظر خلفي' : 'منظر أمامي';
+
+  document.querySelectorAll('.body-diagram .region').forEach(r=>{
+    r.classList.remove('active','cardio-glow');
+    if(currentMuscle === 'كارديو' && !isBack){
+      r.classList.add('cardio-glow');
+    } else if(r.dataset.key === currentMuscle){
+      r.classList.add('active');
+    }
+  });
+}
+
+function renderExercises(){
+  const list = document.getElementById('exList');
+  list.innerHTML = '';
+  const items = exercises[currentEnv][currentMuscle] || [];
+
+  updateBodyDiagram();
+  document.getElementById('bannerName').textContent = currentMuscle;
+  document.getElementById('bannerCount').textContent = items.length + ' تمارين • ' + (currentEnv==='home' ? 'في المنزل' : 'في النادي');
+
+  items.forEach(ex=>{
+    const el = document.createElement('div');
+    el.className = 'ex-item';
+    el.innerHTML = `
+      <div class="ex-icon">${poseIcons[ex.pose] || ''}</div>
+      <div class="ex-text">
+        <div class="name">${ex.name}</div>
+        <div class="meta">${ex.meta}</div>
+      </div>
+      <div class="ex-tag">${currentMuscle}</div>
+    `;
+    el.addEventListener('click', ()=> openModal(ex));
+    list.appendChild(el);
+  });
+}
+
+function openModal(ex){
+  document.getElementById('modalIcon').innerHTML = poseIcons[ex.pose] || '';
+  document.getElementById('modalTitle').textContent = ex.name;
+  document.getElementById('modalMeta').textContent = ex.meta;
+  const stepsList = document.getElementById('modalSteps');
+  stepsList.innerHTML = '';
+  (ex.steps || []).forEach(step=>{
+    const li = document.createElement('li');
+    li.textContent = step;
+    stepsList.appendChild(li);
+  });
+  document.getElementById('exerciseModal').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('exerciseModal').classList.remove('open');
+}
+
+document.getElementById('exerciseModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'exerciseModal') closeModal();
+});
+
+document.querySelectorAll('.env-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.env-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentEnv = btn.dataset.env;
+    if(!exercises[currentEnv][currentMuscle]) currentMuscle = Object.keys(exercises[currentEnv])[0];
+    renderFilters();
+    renderExercises();
+  });
+});
+
+renderFilters();
+renderExercises();
+
+/* ---------- Tips ---------- */
+const tips = [
+  'وزّع البروتين على 3-4 وجبات باليوم بدل تركيزه بوجبة وحدة، يساعد الجسم يستفيد منه بشكل أفضل.',
+  'اشرب كوب ماء قبل كل وجبة بـ20 دقيقة، يقلل الإفراط في الأكل ويحسّن الهضم.',
+  'النوم أقل من 6 ساعات يرفع هرمون الجوع (Ghrelin) ويصعّب أي هدف — تنشيف أو تضخيم.',
+  'التمرين المنتظم بجهد متوسط أفضل من تمرين قوي مرة واحدة بالأسبوع وتوقف بعدها.',
+  'خذ يوم راحة كامل أسبوعيًا على الأقل — العضلة تكبر وقت الراحة مو وقت التمرين.',
+  'قِس تقدمك بالمرآة والقياسات مو بالميزان بس، الوزن يتأثر بالماء والملح يوميًا.',
+  'قلل الملح والسكر المصنّع أكثر من تركيزك على "حرمان" نفسك من كل شي — الاستمرارية أهم من الكمال.'
+];
+const tipsList = document.getElementById('tipsList');
+tips.forEach((t,i)=>{
+  const el = document.createElement('div');
+  el.className = 'tip-item';
+  el.innerHTML = `<div class="tip-num">${i+1}</div><div class="tip-text">${t}</div>`;
+  tipsList.appendChild(el);
+});
+</script>
+
+</body>
+</html>
